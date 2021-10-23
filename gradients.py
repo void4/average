@@ -1,11 +1,11 @@
 from glob import glob
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from moviepy.editor import *
 import sys
 import os
 
-os.makedirs("averages", exist_ok=True)
+os.makedirs("gradients", exist_ok=True)
 
 exts = "mp4 webm".split()
 
@@ -29,10 +29,10 @@ for path in paths:
 
 	clip = VideoFileClip(path)
 
-	w = 640
+	w = 1
 	h = 480
 
-	arr = np.zeros((h,w,3), np.float)
+	colors = []
 
 	n = 0
 	for frame in clip.iter_frames():
@@ -40,15 +40,17 @@ for path in paths:
 		img = Image.fromarray(frame)
 		img = img.resize((w,h)).convert("RGB")
 		imgarr = np.array(img, dtype=np.float)
-		arr = arr + imgarr
+		color = np.mean(imgarr, axis=(0,1))
+		color = np.array(np.round(color), dtype=np.uint8)
+		colors.append(tuple(color))
 		n += 1
-
-	arr /= n
-
-	arr = np.array(np.round(arr), dtype=np.uint8)
 
 	print(path, ":", n, "frames")
 
-	out = Image.fromarray(arr, mode="RGB")
-	out.save(f"averages/{os.path.basename(path)}.png")
+	out = Image.new("RGB", (n*w,h))
+	draw = ImageDraw.Draw(out)
+	for c, color in enumerate(colors):
+		draw.line((c,0,c,h), color)
+	
+	out.save(f"gradients/{os.path.basename(path)}.png")
 	#out.show()
