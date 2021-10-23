@@ -13,13 +13,14 @@ exts = "mp4 webm".split()
 if len(sys.argv) < 2:
 	print("directory path missing")
 
-#paths = [sys.argv[1]]
-
 path = sys.argv[1]
 
-paths = []
-for ext in exts:
-	paths += glob(f"{path}/*.{ext}")
+if "." in path:
+	paths = [path]
+else:
+	paths = []
+	for ext in exts:
+		paths += glob(f"{path}/*.{ext}")
 
 print(len(paths), "found")
 
